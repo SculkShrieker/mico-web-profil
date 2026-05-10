@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Interaktif - Mico</title>
+    <style>
+        /* --- CSS VARIABLES --- */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --border: #e2e8f0;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html[data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #60a5fa;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color var(--transition), color var(--transition);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
+        }
+
+        .profile-card {
+            background-color: var(--bg-card);
+            width: 100%; max-width: 380px; border-radius: 24px; padding: 32px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid var(--border);
+            position: relative; text-align: center;
+        }
+
+        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
+
+        .icon-btn {
+            background: none; border: 1px solid var(--border); color: var(--text-main);
+            width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: var(--transition);
+        }
+
+        .icon-btn:hover { background-color: var(--border); transform: scale(1.1); }
+
+        .avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); margin-bottom: 16px; }
+
+        h1 { font-size: 1.5rem; margin-bottom: 4px; }
+        .handle { color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; display: block; }
+
+        .info-group { text-align: left; background-color: var(--bg-body); padding: 16px; border-radius: 16px; margin-bottom: 24px; }
+        .info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; }
+
+        .bio-text { font-size: 0.85rem; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: var(--transition); margin-bottom: 20px; }
+        .bio-text:hover { background-color: var(--border); color: var(--text-main); }
+
+        /* --- STYLING BAGIAN RINGKASAN (NEW) --- */
+        .summary-section {
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            margin-top: 10px;
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        /* Menggunakan CSS Grid untuk membuat 3 kolom sejajar */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--bg-body);
+            padding: 12px 5px;
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .summary-item:hover { transform: translateY(-3px); background: var(--border); }
+
+        .summary-value { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .summary-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-top: 2px; }
+
+        /* MODAL STYLING */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+
+        .modal-content { background: var(--bg-card); padding: 24px; border-radius: 20px; width: 90%; max-width: 340px; border: 1px solid var(--border); }
+        input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main); }
+        .btn-save { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+
+        .handle { 
+            color: var(--accent); 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            display: block; 
+            text-decoration: none; /* Menghilangkan garis bawah default link */
+            cursor: pointer;       /* Memastikan kursor berubah menjadi tangan saat diarahkan */
+        }
+
+        .handle:hover {
+            text-decoration: underline; /* Opsional: memberikan garis bawah tipis saat kursor di atasnya */
+            opacity: 0.8;               /* Memberikan efek visual sedikit pudar saat di-hover */
+        }
+
+
+        
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <div class="top-controls">
+            <button class="icon-btn" id="theme-toggle" title="Ganti Tema">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <button class="icon-btn" onclick="toggleModal()" title="Pengaturan">⚙️</button>
+        </div>
+
+        <img src="gambardiri.jpg" alt="Mico" class="avatar">
+        <h1 id="display-name">Mico</h1>
+        <a href="https://github.com/SculkShrieker/myProjects" target="_blank" rel="noopener noreferrer" class="handle">
+    @SculkShrieker
+        </a>
+        <div class="info-group">
+            <div class="info-item">
+                <span class="label">NIM</span>
+                <span id="display-nim" style="font-weight: 600;">52025005</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Prodi</span>
+                <span>Teknik Informatika</span>
+            </div>
+        </div>
+
+        <p class="bio-text" id="display-bio" onclick="editBioInline()">
+            Informatics Student |  Junior AI Driven Developer
+        </p>
+
+        <div class="summary-section">
+            <div class="summary-title">Ringkasan</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-value" id="val-tugas">12</span>
+                    <span class="summary-label">Tugas</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="val-proyek">5</span>
+                    <span class="summary-label">Proyek</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="val-pencapaian">3</span>
+                    <span class="summary-label">Prestasi</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div style="margin-bottom: 20px; font-weight: bold;">Update Informasi</div>
+            <input type="text" id="input-name" placeholder="Nama Baru">
+            <input type="text" id="input-nim" placeholder="NIM Baru (Opsional)">
+            <input type="text" id="input-bio" placeholder="Bio Baru">
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="input-tugas" placeholder="Tugas">
+                <input type="number" id="input-proyek" placeholder="Proyek">
+                <input type="number" id="input-pencapaian" placeholder="Prestasi">
+            </div>
+            <button class="btn-save" onclick="saveProfile()">Simpan Perubahan</button>
+            <button onclick="toggleModal()" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer; font-size:0.8rem;">Batal</button>
+        </div>
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+
+        // 1. Inisialisasi Tema
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+        }
+
+        function applyTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            themeIcon.innerText = (theme === 'dark') ? '☀️' : '🌙';
+            localStorage.setItem('theme', theme);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // 2. Logika Modal & Simpan
+        function toggleModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function saveProfile() {
+            const fields = [
+                { id: 'input-name', display: 'display-name' },
+                { id: 'input-nim', display: 'display-nim'},
+                { id: 'input-bio', display: 'display-bio' },
+                { id: 'input-tugas', display: 'val-tugas' },
+                { id: 'input-proyek', display: 'val-proyek' },
+                { id: 'input-pencapaian', display: 'val-pencapaian' }
+            ];
+
+            fields.forEach(field => {
+                const val = document.getElementById(field.id).value;
+                if(val) document.getElementById(field.display).innerText = val;
+            });
+
+            toggleModal();
+        }
+
+        function editBioInline() {
+            const newBio = prompt("Ubah Bio:", document.getElementById('display-bio').innerText);
+            if (newBio) document.getElementById('display-bio').innerText = newBio;
+        }
+
+        initTheme();
+    </script>
+</body>
+</html>
